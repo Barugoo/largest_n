@@ -41,9 +41,9 @@ go test -bench . -benchmem
 goos: darwin
 goarch: arm64
 pkg: github.com/Barugoo/largest_n
-BenchmarkLargest10-8       43413             25800 ns/op          495973 B/op          9 allocs/op
+BenchmarkLargest10-8        1095           1069773 ns/op          496898 B/op         41 allocs/op
 PASS
-ok      github.com/Barugoo/largest_n    2.143s
+ok      github.com/Barugoo/largest_n    2.043s
 ```
 
 ### bench_100000
@@ -52,9 +52,9 @@ go test -bench . -benchmem
 goos: darwin
 goarch: arm64
 pkg: github.com/Barugoo/largest_n
-BenchmarkLargest10-8       45669             29512 ns/op          495972 B/op          9 allocs/op
+BenchmarkLargest10-8         234           5043072 ns/op          498048 B/op         89 allocs/op
 PASS
-ok      github.com/Barugoo/largest_n    2.576s
+ok      github.com/Barugoo/largest_n    2.486s
 ```
 
 ### bench_1000000
@@ -63,7 +63,7 @@ go test -bench . -benchmem
 goos: darwin
 goarch: arm64
 pkg: github.com/Barugoo/largest_n
-BenchmarkLargest10-8       35420             29878 ns/op          495973 B/op          9 allocs/op
+BenchmarkLargest10-8          27          41095045 ns/op          505392 B/op        395 allocs/op
 PASS
-ok      github.com/Barugoo/largest_n    2.488s
+ok      github.com/Barugoo/largest_n    1.964s
 ```
