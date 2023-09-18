@@ -10,7 +10,9 @@ By default N is set to `10` and batch size is 10k
 ## Algorithm
 Basically we break the input in batches of fixed size, sort the batch and push (or skip if less) the values with their respective indexies in a binary heap. To print the result we iterate over the file again to get the urls.
 
-This approach allows us to have `O(m/k)` complexety in worst-case scenario, where m = total amount of rows, k = size of the batch. Also we can run multiple batch processing concurrently with few additions to the code.
+This approach allows us to have `n * m / k` heap pushes in worst-case scenario, where m = total amount of rows, k = size of the batch. Also we can run multiple batch processing concurrently with few additions to the code.
+
+Overall the complexity is `O(N)`
 
 
 ### Assumtions
