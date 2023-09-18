@@ -78,6 +78,7 @@ func BenchmarkLargest10(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		largestN(f, 10000, 10)
+		f.Seek(0, 0)
 	}
 
 }
