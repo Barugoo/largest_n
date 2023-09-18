@@ -4,33 +4,43 @@ import (
 	"bufio"
 	"bytes"
 	"container/heap"
+	"fmt"
 	"io"
 	"sort"
 )
 
-func largestN(r io.ReadSeeker, batchSize int, n int) []ElemIdx {
+func largestN(r io.Reader, batchSize int, n int) (indexies []ElemIdx, err error) {
+	if batchSize == 0 {
+		return nil, fmt.Errorf("batchSize cannot be zero")
+	}
+	if n == 0 {
+		return indexies, nil
+	}
+
 	batchBuf := make([]BatchElem, batchSize)
+	// we need this one for count sort
 	sortBuf := make([]BatchElem, batchSize)
 
+	// using heap to store largest values
 	elemHeap := make(BatchElemHeap, 0, n)
 	heap.Init(&elemHeap)
 
 	var cursour BatchElem
 
 	scanner := bufio.NewScanner(r)
-	scanner.Split(splitFn)
-
 	for scanner.Scan() {
 		var val int64
 		// since scanner.Text allocates memory for new string each time
 		// it's better to use scanner.Bytes and manually translate ASCII digits to int64
-		for _, byt := range scanner.Bytes() {
+		byt := scanner.Bytes()
+		for _, byt := range byt[bytes.Index(byt, spaceByte)+1:] {
 			val = val*10 + int64(byt-'0')
 		}
 
 		cursour.Val = val
 		batchBuf[cursour.RowNumber] = cursour
 
+		// once the batch is full we sort it and put largest N results in the heap
 		if cursour.RowNumber == len(batchBuf)-1 {
 			consumeBatch(&elemHeap, sortBuf, batchBuf, n)
 			cursour.RowNumber = -1
@@ -53,7 +63,7 @@ func largestN(r io.ReadSeeker, batchSize int, n int) []ElemIdx {
 		}
 		return res[i].BatchNumber < res[j].BatchNumber
 	})
-	return res
+	return res, nil
 }
 
 // these are to save on allocations
@@ -80,7 +90,7 @@ func consumeBatch(h heap.Interface, sortBuf, elems []BatchElem, n int) {
 	}
 	heap.Push(h, max)
 
-	// since we know that Val is integer we can do radix sort here
+	// since we know that Val is 64-bit integer we can do count sort here
 	for exp := int64(1); max.Val/exp > 0; exp *= 10 {
 		for i := 0; i < len(elems); i++ {
 			count[(elems[i].Val/exp)%10]++
@@ -101,7 +111,7 @@ func consumeBatch(h heap.Interface, sortBuf, elems []BatchElem, n int) {
 	}
 
 	// take n largest elems from batch and populate the heap
-	for i := 1; i < n; i++ {
+	for i := 1; i < n && i < len(elems); i++ {
 		idx := len(elems) - 1 - i
 		if h.Len() == n {
 			minStored := heap.Pop(h).(BatchElem)
@@ -127,6 +137,7 @@ type BatchElem struct {
 	Val int64
 }
 
+// BatchElemHeap is an implementation of heap.Interface
 type BatchElemHeap []BatchElem
 
 func (h BatchElemHeap) Len() int           { return len(h) }
@@ -141,13 +152,8 @@ func (h *BatchElemHeap) Pop() any {
 	old := *h
 	n := len(old)
 	x := old[n-1]
-	*h = old[0 : n-1 : 10]
+	*h = old[0 : n-1]
 	return x
 }
 
 var spaceByte = []byte{' '}
-
-func splitFn(data []byte, atEOF bool) (advance int, token []byte, err error) {
-	advance, token, err = bufio.ScanLines(data, atEOF)
-	return advance, token[bytes.Index(token, spaceByte)+1:], err
-}
