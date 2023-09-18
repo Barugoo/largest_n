@@ -38,7 +38,9 @@ func main() {
 	var cursour ElemIdx
 	var foundCounter int
 	for scanner.Scan() {
-
+		if foundCounter == *n {
+			break
+		}
 		if indexies[foundCounter] == cursour {
 			url, _, _ := bytes.Cut(scanner.Bytes(), spaceByte)
 
